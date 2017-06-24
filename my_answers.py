@@ -12,12 +12,8 @@ def window_transform_series(series,window_size):
     # containers for input/output pairs
     X = []
     y = []
-    for i in range(len(series)-window_size):
-        data_input = []
-        for input_ind in range(window_size):
-            data_input.append(series[input_ind+i])
-        X.append(data_input)
-        y.append(series[i+window_size])
+    X = [series[i:i+window_size] for i in range(0,len(series)-window_size)]
+    y = [series[window_size+i] for i in range(0,len(series) - window_size)]
         
     # reshape each 
     X = np.asarray(X)
@@ -29,14 +25,12 @@ def window_transform_series(series,window_size):
 
 # TODO: build an RNN to perform regression on our time series input/output data
 def build_part1_RNN(step_size, window_size):
+    # given - fix random seed - so we can all reproduce the same results on our default time series
     np.random.seed(0)
     # TODO: build an RNN to perform regression on our time series input/output data
     model = Sequential()
-    model.add(LSTM(240, return_sequences=True, input_shape=(7,1),dropout=0.2))
-    model.add(LSTM(240,return_sequences=True,dropout=0.2))
-    model.add(LSTM(240,return_sequences=True,dropout=0.1))
-    model.add(LSTM(300))
-    model.add(Dense(1,activation='tanh'))
+    model.add(LSTM(5, input_shape=(window_size,1)))
+    model.add(Dense(1))
 
 
 ### TODO: list all unique characters in the text and remove any non-english ones
@@ -45,14 +39,13 @@ def clean_text(text):
     list_chara = list(text)
     english_chara = ['i', 's', ' ', 'e', 'y', 'h', 'c', 'l', 'p', 'a', 'n', 'd', 
                      'r', 'o', 'm', 't', 'w', 'f', 'x', '.', 'k', 'v', ',', 'u', 
-                     'b', 'g', '-', "'", 'j', 'q', ':', '1', '8', '(', ')', 'z', 
-                     ';', '"', '!', '?', '5', '4', '7', '2', '9', '0', '3', '6']
+                     'b', 'g', 'j', 'q', ':', 'z', ';', '!', '?']
 
     # remove as many non-english characters and character sequences as you can 
     for i in range(len(list_chara)):
         if not (list_chara[i] in english_chara):
             text = text.replace(list_chara[i],' ')
-    
+
     # shorten any extra dead space created above
     text = text.replace('  ',' ')
 
@@ -62,17 +55,7 @@ def clean_text(text):
 ### TODO: fill out the function below that transforms the input text and window-size into a set of input/output pairs for use with our RNN model
 def window_transform_text(text,window_size,step_size):
     # containers for input/output pairs
-    inputs = []
-    outputs = []
-    for i in range(len(text)-step_size):
-        inputs.append(text[i:window_size+i])
-        outputs.append(text[i+window_size+1])
-        i = i + step_size
-        if (i + window_size) > len(text):
-            break
-    inputs = np.asarray(inputs)
-    #print(inputs.shape)
-    #inputs.shape = (np.shape(inputs[0:2]))
-    outputs = np.asarray(outputs)
+    inputs= [text[i:i+window_size] for i in range(0,len(text)-window_size, step_size)]
+    outputs= [text[i+window_size] for i in range(0,len(text)-window_size, step_size)]
     #outputs.shape = (len(outputs),1)
     return inputs,outputs
